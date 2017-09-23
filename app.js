@@ -1,30 +1,41 @@
 const express = require('express');
 const fetch = require('node-fetch');
-
+const Harvest = require('harvest');
+const base64 = require('base-64');
+const authentication = require('./src/config.js')
 const app = express();
 const port = '8080';
-const apiKey ='MDozM2RjYmQ4Mi04ZWE2LTExZTctODQ2MC05ZjgzMmZjNzMzNzc6R2xPNzVaZ3VZSk5CWGFmVVdhZjZqQXh4SDdTaWVPR3JGeUpT';
+
+const harvestInfo = authentication['harvestInfo'];
 
 
-app.use(express.static('public'));
-
-app.get('/api', (req, res) =>{
-	//fetch takes two arguments, the url you are trying to hit and an object literal 
-	fetch('http://lcboapi.com/products',{
-		method:'get'
-	}).then(resp => {
-		return resp.json();
-	}).then(data => {
-		res.status(200).json(data);
-	}).catch(err => {
-		res.status(500).json({message: err});
-	});
-}); 
+const basicauth = base64.encode(`${harvestInfo.username}:${harvestInfo.password}`);
 
 
+//gets all the clients 
 
-app.listen(port, () =>{
-	console.log(`your app is running on port ${port}!`);
+fetch(`https://${harvestInfo.domain}.harvestapp.com/clients/`, {
+  method: 'GET',
+  dataType: 'jsonp',
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': "application/json",
+    Authorization: `Basic ${basicauth}`,
+  },
+})
+.then(resp => resp.json())
+.then(resp => {
+  console.log({ resp });
+})
+.catch(err => {
+  console.log(`err: ${err}`)
 });
 
+//create a dropdown list with all the client names 
+
+//from clients get all projects associated with the client
+// projects = /projects?client=${client.id};
+//allow user to select clients from the list 
+
+//send clientID back to the api and GET their time data 
 
